@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">TimeStamp</string>
+    <string name="str_editD_title">Edit Timestamp</string>
+    <string name="str_all_edit">Edit</string>
+    <string name="str_confirmD_confirm">Confirm</string>
+    <string name="str_confirmD_notEqual">Enter count incorrect</string>
+    <string name="hint_editD_description">Description</string>
+    <string name="title_menuItem_export">export</string>
+    <string name="title_menuItem_delete">delete</string>
+    <string name="text_mainButton_timestamp">TimeStamp!</string>
+    <string name="text_confirmDtv_deleteAll">Delete All time stamps?</string>
+    <string name="str_customD_title">Custom TimeStamp</string>
+    <string name="str_customD_positiveButton">Create</string>
+</resources>

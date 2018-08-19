@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="str_editD_title">Редактировать метку</string>
+    <string name="str_all_edit">Изменить</string>
+    <string name="str_confirmD_confirm">Подтвердите</string>
+    <string name="str_confirmD_notEqual">Число не совпало</string>
+    <string name="hint_editD_description">Описание</string>
+    <string name="title_menuItem_export">Экспорт</string>
+    <string name="title_menuItem_delete">Удалить</string>
+    <string name="text_confirmDtv_deleteAll">Удалить все метки?</string>
+    <string name="str_customD_title">Самодельная метка</string>
+    <string name="str_customD_positiveButton">Создать</string>
+</resources>

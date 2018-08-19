@@ -1,0 +1,203 @@
+package dev.jorik.timestamp.model.handlers;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import dev.jorik.timestamp.TimeStamp;
+
+import static dev.jorik.timestamp.model.handlers.DbHandler.Const.DB_NAME;
+import static dev.jorik.timestamp.model.handlers.DbHandler.Const.DB_VERSION;
+import static dev.jorik.timestamp.model.handlers.DbHandler.Const.ID;
+import static dev.jorik.timestamp.model.handlers.DbHandler.Const.NAME;
+import static dev.jorik.timestamp.model.handlers.DbHandler.Const.ARG;
+import static dev.jorik.timestamp.model.handlers.DbHandler.Const.TABLE_NAME;
+import static dev.jorik.timestamp.model.handlers.DbHandler.Const.TIME;
+
+public class DbHandler extends SQLiteOpenHelper {
+
+    public static class Const {
+        private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
+        public static final String DB_NAME = "time_stamps";
+        public static final int DB_VERSION = 2;
+        public static final String ARG = "=?";
+
+        public static final String TABLE_NAME = "times";
+        //поля
+        public static final String ID = "_id";
+        public static final String TIME = "time";
+        public static final String NAME = "name";
+
+    }
+
+    public DbHandler(Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE " + TABLE_NAME + "("
+                + ID + " INTEGER PRIMARY KEY, "
+                + TIME + " TEXT,"
+                + NAME + " TEXT"
+                + ")"
+        );
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        String temp = "temp_table";
+        if (oldVersion < 2) {
+            //optimize: перемещением данных по  одному, чтобы не забивать память для больших таблиц
+            /**
+             * Скачивание всей таблицы и перемещение ее в новую таблицу
+             */
+//            List<TimeStamp> allTimestamp = readAllItems_v1();//bug: double open db
+            List<TimeStamp> allTimestamp = getAllItemsFromDB(db);
+            db.execSQL("CREATE TABLE " + temp + "("
+                    + ID + " INTEGER PRIMARY KEY, "
+                    + TIME + " INTEGER,"
+                    + NAME + " TEXT"
+                    + ")"
+            );
+
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+            db.execSQL("ALTER TABLE " + temp + " RENAME TO " + TABLE_NAME);
+            for (TimeStamp ts : allTimestamp) {
+                db.insert(TABLE_NAME, null, getValuesFromTimestamp(ts));
+            }
+        }
+    }
+
+    public long createItem(TimeStamp timeStamp) {
+        SQLiteDatabase db = getWritableDatabase();
+        long id = db.insert(TABLE_NAME, null, getValuesFromTimestamp(timeStamp));
+        db.close();
+        return id;
+    }
+
+    public TimeStamp readItem(long id) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(TABLE_NAME,
+                null,
+                ID + ARG,
+                new String[]{String.valueOf(id)},
+                null, null, null, null
+        );
+        if (cursor.moveToFirst()) {
+            return getTimestampFromCursor(cursor);
+        }
+        throw new NullPointerException("Element not found");
+    }
+
+    public int updateItem(long id, TimeStamp timeStamp) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.update(TABLE_NAME,
+                getValuesFromTimestamp(timeStamp),
+                ID + ARG,
+                new String[]{String.valueOf(id)});
+    }
+
+    public boolean refreshItem(TimeStamp timeStamp) {
+        if (timeStamp.getId() == 0) {
+            return false;
+        }
+        return 0 < updateItem(timeStamp.getId(), timeStamp);
+
+    }
+
+    public void deleteItem(long id) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(TABLE_NAME, ID + ARG, new String[]{String.valueOf(id)});
+        db.close();
+    }
+
+    public int deleteAllItems() {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(TABLE_NAME, null, null);
+    }
+
+    public int getRowsCount() {
+        SQLiteDatabase database = getReadableDatabase();
+        Cursor cursor = database.query(TABLE_NAME,
+                null, null, null,
+                null, null, null);
+        int count = cursor.getCount();
+        database.close();
+        return count;
+    }
+
+    public List<TimeStamp> readAllItems() {
+        List<TimeStamp> rList = new ArrayList<>();
+        SQLiteDatabase db = getWritableDatabase();
+//        String selectQuery = "SELECT * FROM " + TABLE_NAME + " ORDER BY "+ TIME + " ASC";
+//        Cursor cursor = db.rawQuery(selectQuery, null);
+        Cursor cursor = db.query(TABLE_NAME, null, null, null,
+                null, null, TIME + " ASC");
+        if (cursor.moveToFirst()) {
+            do {
+                rList.add(getTimestampFromCursor(cursor));
+            } while (cursor.moveToNext());
+        }
+        return rList;
+    }
+
+    //time <- String
+    private TimeStamp getTimestampFromCursor_v1(Cursor cursor) {
+        TimeStamp rTimestamp = new TimeStamp();
+        rTimestamp.setId(cursor.getInt(cursor.getColumnIndex(ID)));
+        rTimestamp.setName(cursor.getString(cursor.getColumnIndex(NAME)));
+        rTimestamp.setTime(getDateFromString(cursor.getString(cursor.getColumnIndex(TIME))));
+        return rTimestamp;
+    }
+
+    //time <- long
+    private TimeStamp getTimestampFromCursor(Cursor cursor) {
+        TimeStamp rTimestamp = new TimeStamp();
+        rTimestamp.setId(cursor.getInt(cursor.getColumnIndex(ID)));
+        rTimestamp.setName(cursor.getString(cursor.getColumnIndex(NAME)));
+        rTimestamp.setTime(new Date(cursor.getLong(cursor.getColumnIndex(TIME))));
+        return rTimestamp;
+    }
+
+    private ContentValues getValuesFromTimestamp(TimeStamp timeStamp) {
+        ContentValues rValues = new ContentValues();
+        rValues.put(NAME, timeStamp.getName());
+        rValues.put(TIME, timeStamp.getTime().getTime());
+        return rValues;
+    }
+
+    private String getStringFromDate(Date date) {
+        return Const.DATE_FORMAT.format(date);
+    }
+
+    private Date getDateFromString(String stringDate) {
+        Date rDate = new Date();
+        try {
+            rDate = Const.DATE_FORMAT.parse(stringDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return rDate;
+    }
+
+    private List<TimeStamp> getAllItemsFromDB(SQLiteDatabase database) {
+        List<TimeStamp> rList = new ArrayList<>();
+        String selectQuery = "SELECT * FROM " + TABLE_NAME;
+        Cursor cursor = database.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            do {
+                rList.add(getTimestampFromCursor_v1(cursor));
+            } while (cursor.moveToNext());
+        }
+        return rList;
+    }
+}

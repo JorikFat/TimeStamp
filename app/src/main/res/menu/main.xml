@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/item_mainMenu_export"
+        android:title="@string/title_menuItem_export"
+        app:showAsAction="never"
+        />
+
+    <item android:id="@+id/item_mainMenu_deleteAll"
+        android:title="@string/title_menuItem_delete"
+        app:showAsAction="never"
+        />
+</menu>
