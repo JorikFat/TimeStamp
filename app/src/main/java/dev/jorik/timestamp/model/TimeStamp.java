@@ -1,4 +1,4 @@
-package dev.jorik.timestamp;
+package dev.jorik.timestamp.model;
 
 import android.support.annotation.NonNull;
 

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import dev.jorik.timestamp.model.TimeStamp;
+
 
 public class TimeStampAdapterRV extends RecyclerView.Adapter<TimeStampAdapterRV.TimestampVH> {
 
@@ -69,7 +71,7 @@ public class TimeStampAdapterRV extends RecyclerView.Adapter<TimeStampAdapterRV.
     }
 
     //todo временный метод, для работы без mvp
-    public List<TimeStamp> tempGetElements(){
+    public List<TimeStamp> getElements(){
         return timestampData;
     }
 

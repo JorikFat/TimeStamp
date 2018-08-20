@@ -12,7 +12,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import dev.jorik.timestamp.TimeStamp;
+import dev.jorik.timestamp.Contract;
+import dev.jorik.timestamp.model.TimeStamp;
 
 import static dev.jorik.timestamp.model.handlers.DbHandler.Const.DB_NAME;
 import static dev.jorik.timestamp.model.handlers.DbHandler.Const.DB_VERSION;
@@ -22,7 +23,7 @@ import static dev.jorik.timestamp.model.handlers.DbHandler.Const.ARG;
 import static dev.jorik.timestamp.model.handlers.DbHandler.Const.TABLE_NAME;
 import static dev.jorik.timestamp.model.handlers.DbHandler.Const.TIME;
 
-public class DbHandler extends SQLiteOpenHelper {
+public class DbHandler extends SQLiteOpenHelper implements Contract.Model {
 
     public static class Const {
         private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
@@ -77,6 +78,7 @@ public class DbHandler extends SQLiteOpenHelper {
         }
     }
 
+    @Override
     public long createItem(TimeStamp timeStamp) {
         SQLiteDatabase db = getWritableDatabase();
         long id = db.insert(TABLE_NAME, null, getValuesFromTimestamp(timeStamp));
@@ -98,6 +100,7 @@ public class DbHandler extends SQLiteOpenHelper {
         throw new NullPointerException("Element not found");
     }
 
+    @Override
     public int updateItem(long id, TimeStamp timeStamp) {
         SQLiteDatabase db = getWritableDatabase();
         return db.update(TABLE_NAME,
@@ -106,6 +109,7 @@ public class DbHandler extends SQLiteOpenHelper {
                 new String[]{String.valueOf(id)});
     }
 
+    @Override
     public boolean refreshItem(TimeStamp timeStamp) {
         if (timeStamp.getId() == 0) {
             return false;
@@ -120,11 +124,13 @@ public class DbHandler extends SQLiteOpenHelper {
         db.close();
     }
 
+    @Override
     public int deleteAllItems() {
         SQLiteDatabase db = getWritableDatabase();
         return db.delete(TABLE_NAME, null, null);
     }
 
+    @Override
     public int getRowsCount() {
         SQLiteDatabase database = getReadableDatabase();
         Cursor cursor = database.query(TABLE_NAME,
