@@ -10,4 +10,8 @@
         android:title="@string/title_menuItem_delete"
         app:showAsAction="never"
         />
+
+    <item android:id="@+id/item_mainMenu_settings"
+        android:title="@string/title_menuItem_settings"
+        app:showAsAction="never" />
 </menu>

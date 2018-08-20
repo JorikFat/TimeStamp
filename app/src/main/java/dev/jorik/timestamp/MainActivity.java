@@ -85,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.item_mainMenu_deleteAll:
                 confirmDelete();
                 break;
+            case R.id.item_mainMenu_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
         }
         return false;
     }

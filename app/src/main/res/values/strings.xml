@@ -7,6 +7,7 @@
     <string name="hint_editD_description">Description</string>
     <string name="title_menuItem_export">export</string>
     <string name="title_menuItem_delete">delete</string>
+    <string name="title_menuItem_settings">settings</string>
     <string name="text_mainButton_timestamp">TimeStamp!</string>
     <string name="text_confirmDtv_deleteAll">Delete All time stamps?</string>
     <string name="str_customD_title">Custom TimeStamp</string>

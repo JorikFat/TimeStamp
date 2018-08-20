@@ -7,6 +7,7 @@
     <string name="hint_editD_description">Описание</string>
     <string name="title_menuItem_export">Экспорт</string>
     <string name="title_menuItem_delete">Удалить</string>
+    <string name="title_menuItem_settings">Настройки</string>
     <string name="text_confirmDtv_deleteAll">Удалить все метки?</string>
     <string name="str_customD_title">Самодельная метка</string>
     <string name="str_customD_positiveButton">Создать</string>
