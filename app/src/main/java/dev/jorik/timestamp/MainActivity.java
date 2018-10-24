@@ -39,10 +39,9 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     @InjectPresenter MainPresenter presenter;
 
     @ProvidePresenter
-    MainPresenter createMainPresenter(DbHandler handler){
-        return new MainPresenter(handler);
+    MainPresenter createMainPresenter(){
+        return new MainPresenter(dbHandler);
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
