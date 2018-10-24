@@ -8,15 +8,18 @@ import com.arellomobile.mvp.MvpPresenter;
 import com.arellomobile.mvp.presenter.ProvidePresenter;
 
 import java.util.Calendar;
+import java.util.List;
 
 import dev.jorik.timestamp.MainView;
 import dev.jorik.timestamp.R;
+import dev.jorik.timestamp.Utils.DateTime;
 import dev.jorik.timestamp.model.entities.TimeStamp;
 import dev.jorik.timestamp.model.handlers.DbHandler;
 
 @InjectViewState
 public class MainPresenter extends MvpPresenter<MainView> {
     DbHandler dbHandler;
+    TimeStamp dialogTimestamp;
 
 //    public MainPresenter(){}
 
@@ -25,7 +28,9 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     public void mainButtonClick(){
-        getViewState().addTimeStamp(Calendar.getInstance().getTime());
+        TimeStamp nowTimeStamp = new TimeStamp(Calendar.getInstance().getTime());
+        nowTimeStamp.setId(dbHandler.createItem(nowTimeStamp));
+        getViewState().addTimeStamp(nowTimeStamp);
     }
 
     public void mainButtonHold(){
@@ -33,24 +38,63 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     public void clickItemList(TimeStamp timeStamp){
+        dialogTimestamp = timeStamp;
         getViewState().showEditDialog(timeStamp);
     }
 
     public void viewCreated(){
-        getViewState().showData();
+        getViewState().showData(dbHandler.readAllItems());
     }
 
     public boolean selectOptionsMenu(MenuItem item) {
         switch (item.getItemId()){
             case R.id.item_mainMenu_export:
-                getViewState().exportData();
+                getViewState().exportData(getExpTitle(), getExpData());
                 return true;
             case R.id.item_mainMenu_deleteAll:
-                getViewState().confirmDelete();
+                getViewState().confirmDelete(dbHandler.getRowsCount());
                 return true;
             default:
                 return false;
         }
     }
 
+    public void editDialogSuccess(String newName) {
+        dialogTimestamp.setName(newName);
+        dbHandler.refreshItem(dialogTimestamp);
+        getViewState().showData(dbHandler.readAllItems());
+        dialogTimestamp = null;
+    }
+
+    public void editDialogFail(){
+        dialogTimestamp = null;
+        getViewState().showToast(android.R.string.cancel);
+    }
+
+    public void confirmDialogSuccess(int inputRows){
+        int currentRows = dbHandler.getRowsCount();
+        if (inputRows == currentRows){
+            dbHandler.deleteAllItems();
+            getViewState().showData(dbHandler.readAllItems());
+        } else {
+            getViewState().showToast(R.string.str_confirmD_notEqual);
+        }
+    }
+
+    public void confirmDialogFail(){
+        //nothing
+    }
+
+    private String getExpData(){
+        List<TimeStamp> listTimeStamp = dbHandler.readAllItems();
+        StringBuilder builder = new StringBuilder();
+        for (TimeStamp ts : listTimeStamp) {
+            builder.append(DateTime.TIME.format(ts.getTime())).append(" - ").append(ts.getName()).append("\n");
+        }
+        return builder.toString();
+    }
+
+    private String getExpTitle(){
+        return DateTime.DATE.format(Calendar.getInstance().getTime());
+    }
 }

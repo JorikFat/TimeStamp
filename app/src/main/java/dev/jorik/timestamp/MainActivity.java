@@ -48,20 +48,16 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        dbHandler = new DbHandler(this);//передать в presenter
-
         timeStamp = findViewById(R.id.btn_mainA_timestamp);
         timeStamp.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {//передать в presenter
-//                addTimeStamp(Calendar.getInstance().getTime());
+            public void onClick(View v) {
                 presenter.mainButtonClick();
             }
         });
         timeStamp.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
-            public boolean onLongClick(View v) {//передать в presenter
-//                createCustomTimestamp(Calendar.getInstance().getTime());
+            public boolean onLongClick(View v) {
                 presenter.mainButtonHold();
                 return true;
             }
@@ -76,9 +72,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         listTimestamp.setAdapter(adapterRV);
         adapterRV.setOnItemClickListener(new TimeStampAdapterRV.ClickListener() {
             @Override
-            public void onClick(int position) {//передать в presenter
-//                showEditDialog(adapterRV.tempGetElements().get(position));
-
+            public void onClick(int position) {
                 presenter.clickItemList(adapterRV.tempGetElements().get(position));
             }
         });
@@ -102,109 +96,106 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     }
 
     @Override
-    public void showData() {
-        adapterRV.setData(dbHandler.readAllItems());
+    public void showData(List<TimeStamp> data) {
+        adapterRV.setData(data);
     }
 
     @Override
-    public void addTimeStamp(Date date) {
-        TimeStamp addTimestamp = new TimeStamp(date);
-        addTimestamp.setId(dbHandler.createItem(addTimestamp));
-        adapterRV.add(addTimestamp);
+    public void addTimeStamp(TimeStamp timeStamp) {
+        adapterRV.add(timeStamp);
     }
 
     @Override
-    public void showEditDialog(final TimeStamp timeStamp){//передать в presenter
+    public void updateData() {
+        adapterRV.notifyDataSetChanged();
+    }
+
+    @Override
+    public void showEditDialog(final TimeStamp timeStamp){
         View dialogView = getLayoutInflater().inflate(R.layout.view_editdialog, null, false);
         final EditText etDescription = dialogView.findViewById(R.id.et_dialogEdit_decs);
-
         ((TextView) dialogView.findViewById(R.id.tv_dialogEdit_time)).setText(DateTime.TIME.format(timeStamp.getTime()));
         etDescription.setText(timeStamp.getName());
+
         new AlertDialog.Builder(this)
                 .setTitle(R.string.str_editD_title)
                 .setView(dialogView)
                 .setPositiveButton(R.string.str_all_edit, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        timeStamp.setName(etDescription.getText().toString());
+//                        timeStamp.setName(etDescription.getText().toString());
 //                        dbHandler.updateItem(timeStamp.getId(), timeStamp);
-                        dbHandler.refreshItem(timeStamp);
-                        adapterRV.notifyDataSetChanged();
+//                        dbHandler.refreshItem(timeStamp);
+//                        adapterRV.notifyDataSetChanged();
+
+                        presenter.editDialogSuccess(etDescription.getText().toString());
                     }
                 })
                 .setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialog) {
                         showToast(android.R.string.cancel);
+                        presenter.editDialogFail();
                     }
                 })
                 .show();
     }
 
-    private void showDialog(AlertDialog dialog) {
-        dialog.show();
-    }
-
     @Override
     public void showToast(String text){
+        //Todo расширить метод закрытием открытого Toast
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showToast(int resId){
+        //Todo расширить метод закрытием открытого Toast
         Toast.makeText(this, resId, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void exportData(){
+    public void exportData(String exportTitle, String exportData){
         Intent exportIntent = new Intent(Intent.ACTION_SEND);
-        exportIntent.putExtra(Intent.EXTRA_TEXT, getTextSheldere());
-        String exportTitle = DateTime.DATE.format(Calendar.getInstance().getTime());
+        exportIntent.putExtra(Intent.EXTRA_TEXT, exportData);
         exportIntent.putExtra(Intent.EXTRA_TITLE, exportTitle);
         exportIntent.setType("text/plain");
         startActivity(exportIntent);
     }
 
-    private String getTextSheldere() {
-        List<TimeStamp> listTimeStamp = dbHandler.readAllItems();
-        StringBuilder builder = new StringBuilder();
-        for (TimeStamp ts : listTimeStamp) {
-            builder.append(DateTime.TIME.format(ts.getTime())).append(" - ").append(ts.getName()).append("\n");
-        }
-        return builder.toString();
-    }
-
     @Override
-    public void confirmDelete(){
-        final int countRows = dbHandler.getRowsCount();
+    public void confirmDelete(final int countRows){
         final View dialogView = getLayoutInflater().inflate(R.layout.view_dialogconfirm, null, false);
         ((TextView) dialogView.findViewById(R.id.tv_confirmD_countRows)).setText(String.valueOf(countRows));
+
         new AlertDialog.Builder(this)
                 .setTitle(R.string.str_confirmD_confirm)
                 .setView(dialogView)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        EditText inputCount = dialogView.findViewById(R.id.et_confirmD_inputRows);
-                        if (Integer.parseInt(inputCount.getText().toString()) == countRows)
-                            deleteData();
-                        else
-                            showToast(getString(R.string.str_confirmD_notEqual));
+//                        EditText inputCount = dialogView.findViewById(R.id.et_confirmD_inputRows);
+//                        if (Integer.parseInt(inputCount.getText().toString()) == countRows) {
+//                            deleteData();
+//                        }
+//                        else {
+//                            showToast(getString(R.string.str_confirmD_notEqual));
+//                        }
+//
+                        int inputRows = Integer.parseInt(
+                                ((EditText) dialogView.findViewById(R.id.et_confirmD_inputRows))
+                                        .getText().toString()
+                        );
+                        presenter.confirmDialogSuccess(inputRows);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        presenter.confirmDialogFail();
                         dialog.cancel();
                     }
                 })
                 .show();
-    }
-
-    private void deleteData(){
-        dbHandler.deleteAllItems();
-        adapterRV.setData(dbHandler.readAllItems());
-        adapterRV.notifyDataSetChanged();
     }
 
     //рефактор
