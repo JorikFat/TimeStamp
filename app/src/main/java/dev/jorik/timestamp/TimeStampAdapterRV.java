@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import dev.jorik.timestamp.model.entities.TimeStamp;
+
 
 public class TimeStampAdapterRV extends RecyclerView.Adapter<TimeStampAdapterRV.TimestampVH> {
 

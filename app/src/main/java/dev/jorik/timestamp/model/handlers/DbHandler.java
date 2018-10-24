@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import dev.jorik.timestamp.TimeStamp;
+import dev.jorik.timestamp.model.entities.TimeStamp;
 
 import static dev.jorik.timestamp.model.handlers.DbHandler.Const.DB_NAME;
 import static dev.jorik.timestamp.model.handlers.DbHandler.Const.DB_VERSION;

@@ -4,7 +4,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,38 +16,54 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
+import com.arellomobile.mvp.MvpAppCompatActivity;
+import com.arellomobile.mvp.presenter.InjectPresenter;
+import com.arellomobile.mvp.presenter.ProvidePresenter;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import dev.jorik.timestamp.Utils.DateTime;
+import dev.jorik.timestamp.model.entities.TimeStamp;
 import dev.jorik.timestamp.model.handlers.DbHandler;
+import dev.jorik.timestamp.presenter.MainPresenter;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     private Button timeStamp;
     private RecyclerView listTimestamp;
     private TimeStampAdapterRV adapterRV;
-    private DbHandler dbHandler;
+    private DbHandler dbHandler = new DbHandler(this);
+
+    @InjectPresenter MainPresenter presenter;
+
+    @ProvidePresenter
+    MainPresenter createMainPresenter(DbHandler handler){
+        return new MainPresenter(handler);
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        dbHandler = new DbHandler(this);//передать в presenter
+//        dbHandler = new DbHandler(this);//передать в presenter
 
         timeStamp = findViewById(R.id.btn_mainA_timestamp);
         timeStamp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {//передать в presenter
-                addTimeStamp(Calendar.getInstance().getTime());
+//                addTimeStamp(Calendar.getInstance().getTime());
+                presenter.mainButtonClick();
             }
         });
         timeStamp.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {//передать в presenter
-                createCustomTimestamp(Calendar.getInstance().getTime());
+//                createCustomTimestamp(Calendar.getInstance().getTime());
+                presenter.mainButtonHold();
                 return true;
             }
         });
@@ -63,10 +78,17 @@ public class MainActivity extends AppCompatActivity {
         adapterRV.setOnItemClickListener(new TimeStampAdapterRV.ClickListener() {
             @Override
             public void onClick(int position) {//передать в presenter
-                showEditDialog(adapterRV.tempGetElements().get(position));
+//                showEditDialog(adapterRV.tempGetElements().get(position));
+
+                presenter.clickItemList(adapterRV.tempGetElements().get(position));
             }
         });
-        adapterRV.setData(dbHandler.readAllItems());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        presenter.viewCreated();
     }
 
     @Override
@@ -77,29 +99,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        switch (id){
-            case R.id.item_mainMenu_export:
-                exportData();
-                break;
-            case R.id.item_mainMenu_deleteAll:
-                confirmDelete();
-                break;
-        }
-        return false;
+        return presenter.selectOptionsMenu(item);
     }
 
-    private void addTimeStamp(Date date) {
+    @Override
+    public void showData() {
+        adapterRV.setData(dbHandler.readAllItems());
+    }
+
+    @Override
+    public void addTimeStamp(Date date) {
         TimeStamp addTimestamp = new TimeStamp(date);
         addTimestamp.setId(dbHandler.createItem(addTimestamp));
         adapterRV.add(addTimestamp);
     }
 
-    private void showEditDialog(final TimeStamp timeStamp){//передать в presenter
+    @Override
+    public void showEditDialog(final TimeStamp timeStamp){//передать в presenter
         View dialogView = getLayoutInflater().inflate(R.layout.view_editdialog, null, false);
         final EditText etDescription = dialogView.findViewById(R.id.et_dialogEdit_decs);
 
-        ((TextView) dialogView.findViewById(R.id.tv_dialogEdit_time)).setText(TimeStamp.DATE_FORMAT.format(timeStamp.getTime()));
+        ((TextView) dialogView.findViewById(R.id.tv_dialogEdit_time)).setText(DateTime.TIME.format(timeStamp.getTime()));
         etDescription.setText(timeStamp.getName());
         new AlertDialog.Builder(this)
                 .setTitle(R.string.str_editD_title)
@@ -126,18 +146,21 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void showToast(String text){
+    @Override
+    public void showToast(String text){
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
-    private void showToast(int resId){
+    @Override
+    public void showToast(int resId){
         Toast.makeText(this, resId, Toast.LENGTH_SHORT).show();
     }
 
-    private void exportData(){
+    @Override
+    public void exportData(){
         Intent exportIntent = new Intent(Intent.ACTION_SEND);
         exportIntent.putExtra(Intent.EXTRA_TEXT, getTextSheldere());
-        String exportTitle = new SimpleDateFormat("dd-MM-yyyy").format(Calendar.getInstance().getTime());
+        String exportTitle = DateTime.DATE.format(Calendar.getInstance().getTime());
         exportIntent.putExtra(Intent.EXTRA_TITLE, exportTitle);
         exportIntent.setType("text/plain");
         startActivity(exportIntent);
@@ -147,12 +170,13 @@ public class MainActivity extends AppCompatActivity {
         List<TimeStamp> listTimeStamp = dbHandler.readAllItems();
         StringBuilder builder = new StringBuilder();
         for (TimeStamp ts : listTimeStamp) {
-            builder.append(TimeStamp.DATE_FORMAT.format(ts.getTime())).append(" - ").append(ts.getName()).append("\n");
+            builder.append(DateTime.TIME.format(ts.getTime())).append(" - ").append(ts.getName()).append("\n");
         }
         return builder.toString();
     }
 
-    private void confirmDelete(){
+    @Override
+    public void confirmDelete(){
         final int countRows = dbHandler.getRowsCount();
         final View dialogView = getLayoutInflater().inflate(R.layout.view_dialogconfirm, null, false);
         ((TextView) dialogView.findViewById(R.id.tv_confirmD_countRows)).setText(String.valueOf(countRows));
@@ -185,7 +209,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //рефактор
-    private void createCustomTimestamp(Date date){
+    @Override
+    public void createCustomTimestamp(Date date){
         View view = getLayoutInflater().inflate(R.layout.view_customdialog, null, false);
         final NumberPicker npHours = view.findViewById(R.id.numPic_customD_hours);
         final NumberPicker npMinutes = view.findViewById(R.id.numPic_customD_minutes);
