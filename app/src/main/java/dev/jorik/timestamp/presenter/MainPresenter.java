@@ -1,10 +1,13 @@
 package dev.jorik.timestamp.presenter;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.view.MenuItem;
 
 import com.arellomobile.mvp.InjectViewState;
 import com.arellomobile.mvp.MvpPresenter;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -17,12 +20,13 @@ import dev.jorik.timestamp.model.entities.TimeStamp;
 
 @InjectViewState
 public class MainPresenter extends MvpPresenter<MainView> {
-    TimeStamp dialogTimestamp;
+    private TimeStamp dialogTimestamp;
 
     public void mainButtonClick(){
         TimeStamp nowTimeStamp = new TimeStamp(Calendar.getInstance().getTime());
         nowTimeStamp.setId(App.getDbHandler().createItem(nowTimeStamp));
-        getViewState().addTimeStamp(nowTimeStamp);//заменить на insert
+        //todo заменить на insert
+        getViewState().addTimeStamp(nowTimeStamp);
     }
 
     public void mainButtonHold(){
@@ -37,6 +41,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
     public void editDialogConfirm(String newName) {
         dialogTimestamp.setName(newName);
         App.getDbHandler().refreshItem(dialogTimestamp);
+        //todo обновить только 1 элемент, а не все
         getViewState().showData(App.getDbHandler().readAllItems());
         dialogTimestamp = null;
     }
@@ -50,8 +55,8 @@ public class MainPresenter extends MvpPresenter<MainView> {
         getViewState().showData(App.getDbHandler().readAllItems());
     }
 
-    public boolean selectOptionsMenu(MenuItem item) {
-        switch (item.getItemId()){
+    public boolean selectOptionsMenu(int id) {
+        switch (id){
             case R.id.item_mainMenu_export:
                 getViewState().exportData(getExpTitle(), getExpData());
                 return true;
@@ -67,15 +72,15 @@ public class MainPresenter extends MvpPresenter<MainView> {
         int currentRows = App.getDbHandler().getRowsCount();
         if (inputRows == currentRows){
             App.getDbHandler().deleteAllItems();
-            getViewState().showData(App.getDbHandler().readAllItems());
+            //todo сделать метод showEmptyList()
+            getViewState().showData(new ArrayList<TimeStamp>());
         } else {
             getViewState().showToast(R.string.str_confirmD_notEqual);
         }
     }
 
-    public void confirmDialogCancel(){
-        //todo закрыть dialog
-        //nothing
+    public void dialogCancel(DialogInterface dialog){
+        dialog.cancel();
     }
 
     private String getExpData(){
@@ -107,10 +112,5 @@ public class MainPresenter extends MvpPresenter<MainView> {
         timeStamp.setId(App.getDbHandler().createItem(timeStamp));
         //todo добавлять не все записи, а только ту, что создали
         getViewState().showData(App.getDbHandler().readAllItems());
-    }
-
-    public void customDialogCancel() {
-        //todo закрыть диалог
-        //nothing
     }
 }

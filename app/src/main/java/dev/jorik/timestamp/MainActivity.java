@@ -32,8 +32,6 @@ import static java.util.Calendar.HOUR_OF_DAY;
 
 public class MainActivity extends MvpAppCompatActivity implements MainView {
 
-    private Button timeStamp;
-    private RecyclerView listTimestamp;
     private TimeStampAdapterRV adapterRV;
     @InjectPresenter MainPresenter presenter;
 
@@ -43,7 +41,6 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         setContentView(R.layout.activity_main);
 
         App.createDbHandler(this);
-
         adapterRV = new TimeStampAdapterRV();
         adapterRV.setOnItemClickListener(new TimeStampAdapterRV.ClickListener() {
             @Override
@@ -55,7 +52,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     }
 
     private void initViews(){
-        timeStamp = findViewById(R.id.btn_mainA_timestamp);
+        Button timeStamp = findViewById(R.id.btn_mainA_timestamp);
         timeStamp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,12 +66,12 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                 return true;
             }
         });
-        listTimestamp = findViewById(R.id.rv_mainA_listTimestamp);
-        listTimestamp.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        RecyclerView recyclerView = findViewById(R.id.rv_mainA_listTimestamp);
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        listTimestamp.setLayoutManager(layoutManager);
-        listTimestamp.setAdapter(adapterRV);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapterRV);
     }
 
     @Override
@@ -91,7 +88,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return presenter.selectOptionsMenu(item);
+        return presenter.selectOptionsMenu(item.getItemId());
     }
 
     @Override
@@ -123,18 +120,12 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                 .setPositiveButton(R.string.str_all_edit, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-//                        timeStamp.setName(etDescription.getText().toString());
-//                        dbHandler.updateItem(timeStamp.getId(), timeStamp);
-//                        dbHandler.refreshItem(timeStamp);
-//                        adapterRV.notifyDataSetChanged();
-
                         presenter.editDialogConfirm(etDescription.getText().toString());
                     }
                 })
                 .setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialog) {
-//                        showToast(android.R.string.cancel);
                         presenter.editDialogCancel();
                     }
                 })
@@ -183,8 +174,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        presenter.confirmDialogCancel();
-                        dialog.cancel();
+                        presenter.dialogCancel(dialog);
                     }
                 })
                 .show();
@@ -193,31 +183,18 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     //todo вынести в отдельный Presenter
     @Override
     public void createCustomTimestamp(Date date){
-        Calendar tCalendar = Calendar.getInstance();
         View view = getLayoutInflater().inflate(R.layout.view_customdialog, null, false);
         final NumberPicker npHours = view.findViewById(R.id.numPic_customD_hours);
         final NumberPicker npMinutes = view.findViewById(R.id.numPic_customD_minutes);
         final EditText etDescription = view.findViewById(R.id.et_dialogCustom_decs);
-//        npHours.setMinValue(0);
-//        npHours.setMaxValue(23);
-        //todo вынести в CalendarUtils
-//        npHours.setMinValue(tCalendar.getActualMinimum(Calendar.HOUR_OF_DAY));
         npHours.setMinValue(CalendarUtils.getValue(HOUR_OF_DAY, CalendarUtils.Border.MIN));
-//        npHours.setMaxValue(tCalendar.getActualMaximum(Calendar.HOUR_OF_DAY));
         npHours.setMaxValue(CalendarUtils.getValue(HOUR_OF_DAY, CalendarUtils.Border.MAX));
-//        npHours.setValue(getDateValue(date, Calendar.HOUR_OF_DAY));
         npHours.setValue(CalendarUtils.getValue(HOUR_OF_DAY, null));
-//        npMinutes.setMinValue(0);
-//        npMinutes.setMaxValue(59);
-        //todo вынести в CalendarUtils
-//        npMinutes.setMinValue(tCalendar.getActualMinimum(Calendar.MINUTE));
         npMinutes.setMinValue(CalendarUtils.getValue(Calendar.MINUTE, CalendarUtils.Border.MIN));
-//        npMinutes.setMaxValue(tCalendar.getActualMaximum(Calendar.MINUTE));
         npMinutes.setMaxValue(CalendarUtils.getValue(Calendar.MINUTE, CalendarUtils.Border.MAX));
-//        npMinutes.setValue(getDateValue(date, Calendar.MINUTE));
         npMinutes.setValue(CalendarUtils.getValue(HOUR_OF_DAY, null));
         npMinutes.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-            //todo Вынести в Presenter????
+            //todo Вынести в Presenter диалога
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
                 if (oldVal == 59 && newVal == 0) {
@@ -236,32 +213,17 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                     public void onClick(DialogInterface dialog, int which) {
                         int hours = npHours.getValue();
                         int minutes = npMinutes.getValue();
-//                        Calendar calendar = Calendar.getInstance();
-//                        calendar.set(HOUR_OF_DAY, hours);
-//                        calendar.set(MINUTE, minutes);
-//                        calendar.set(SECOND, 0);
                         Calendar calendar = CalendarUtils.getCalendar(hours, minutes, 0);
-
-//                        TimeStamp customTimeStamp = new TimeStamp(calendar.getTime());
-                        String description = etDescription.getText().toString();
-
-                        presenter.customDialogConfirm(calendar.getTime(), description);
-
-//                        if (description.length() > 0){
-//                            customTimeStamp.setName(description);
-//                        }
-//                        timeStamp.setId((int) dbHandler.createItem(customTimeStamp));
-//                        adapterRV.insertItem(customTimeStamp);
+                        String name = etDescription.getText().toString();
+                        presenter.customDialogConfirm(calendar.getTime(), name);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        presenter.customDialogCancel();
-                        dialog.cancel();
+                        presenter.dialogCancel(dialog);
                     }
                 })
                 .show();
-
     }
 }
