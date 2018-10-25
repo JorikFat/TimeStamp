@@ -56,9 +56,11 @@ public class DbHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         String temp = "temp_table";
         if (oldVersion < 2) {
+            //todo оптимизировать
             //optimize: перемещением данных по  одному, чтобы не забивать память для больших таблиц
             /**
              * Скачивание всей таблицы и перемещение ее в новую таблицу
+             * перемещать записи не через TimeStamp а через ContentValue
              */
 //            List<TimeStamp> allTimestamp = readAllItems_v1();//bug: double open db
             List<TimeStamp> allTimestamp = getAllItemsFromDB(db);
@@ -77,41 +79,26 @@ public class DbHandler extends SQLiteOpenHelper {
         }
     }
 
-    public long createItem(TimeStamp timeStamp) {
+    public long createItem(ContentValues contentValues) {
         SQLiteDatabase db = getWritableDatabase();
-        long id = db.insert(TABLE_NAME, null, getValuesFromTimestamp(timeStamp));
+        long id = db.insert(TABLE_NAME, null, contentValues);
         db.close();
         return id;
     }
 
-    public TimeStamp readItem(long id) {
+    public Cursor readItem(long id) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME,
+        return db.query(TABLE_NAME,
                 null,
                 ID + ARG,
                 new String[]{String.valueOf(id)},
                 null, null, null, null
         );
-        if (cursor.moveToFirst()) {
-            return getTimestampFromCursor(cursor);
-        }
-        throw new NullPointerException("Element not found");
     }
 
-    public int updateItem(long id, TimeStamp timeStamp) {
+    public int updateItem(long id, ContentValues contentValues) {
         SQLiteDatabase db = getWritableDatabase();
-        return db.update(TABLE_NAME,
-                getValuesFromTimestamp(timeStamp),
-                ID + ARG,
-                new String[]{String.valueOf(id)});
-    }
-
-    public boolean refreshItem(TimeStamp timeStamp) {
-        if (timeStamp.getId() == 0) {
-            return false;
-        }
-        return 0 < updateItem(timeStamp.getId(), timeStamp);
-
+        return db.update(TABLE_NAME, contentValues, ID + ARG, new String[]{String.valueOf(id)});
     }
 
     public void deleteItem(long id) {
@@ -132,22 +119,14 @@ public class DbHandler extends SQLiteOpenHelper {
                 null, null, null);
         int count = cursor.getCount();
         database.close();
+        cursor.close();
         return count;
     }
 
-    public List<TimeStamp> readAllItems() {
-        List<TimeStamp> rList = new ArrayList<>();
+    public Cursor readAllItems(){
         SQLiteDatabase db = getWritableDatabase();
-//        String selectQuery = "SELECT * FROM " + TABLE_NAME + " ORDER BY "+ TIME + " ASC";
-//        Cursor cursor = db.rawQuery(selectQuery, null);
-        Cursor cursor = db.query(TABLE_NAME, null, null, null,
+        return db.query(TABLE_NAME, null, null, null,
                 null, null, TIME + " ASC");
-        if (cursor.moveToFirst()) {
-            do {
-                rList.add(getTimestampFromCursor(cursor));
-            } while (cursor.moveToNext());
-        }
-        return rList;
     }
 
     //time <- String

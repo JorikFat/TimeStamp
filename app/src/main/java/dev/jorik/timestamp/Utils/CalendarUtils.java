@@ -10,8 +10,7 @@ import static java.util.Calendar.SECOND;
 
 public class CalendarUtils {
     public enum Border{
-        MAX, MIN;
-
+        MAX, MIN
     }
 
     public static Calendar getCalendar(int hours, int minutes, int seconds) {
@@ -27,5 +26,9 @@ public class CalendarUtils {
         if (border == MAX) return calendar.getActualMaximum(field);
         else if (border == MIN) return calendar.getActualMinimum(field);
         else return calendar.get(field);
+    }
+
+    public static Date now(){
+        return Calendar.getInstance().getTime();
     }
 }

@@ -1,8 +1,6 @@
 package dev.jorik.timestamp.presenter;
 
-import android.app.Dialog;
 import android.content.DialogInterface;
-import android.view.MenuItem;
 
 import com.arellomobile.mvp.InjectViewState;
 import com.arellomobile.mvp.MvpPresenter;
@@ -12,24 +10,22 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import dev.jorik.timestamp.App;
-import dev.jorik.timestamp.DbIteractor;
+import dev.jorik.timestamp.DbInteract;
 import dev.jorik.timestamp.MainView;
 import dev.jorik.timestamp.Model;
 import dev.jorik.timestamp.R;
+import dev.jorik.timestamp.Utils.CalendarUtils;
 import dev.jorik.timestamp.Utils.DateTimeUtils;
 import dev.jorik.timestamp.model.entities.TimeStamp;
 
 @InjectViewState
 public class MainPresenter extends MvpPresenter<MainView> {
     private TimeStamp dialogTimestamp;
-    private Model model = new DbIteractor();
+    private Model model = new DbInteract();
 
     public void mainButtonClick(){
-        TimeStamp nowTimeStamp = new TimeStamp(Calendar.getInstance().getTime());
-        nowTimeStamp.setId(model.createItem(nowTimeStamp));
         //todo заменить на insert
-        getViewState().addTimeStamp(nowTimeStamp);
+        getViewState().addTimeStamp(model.createItem(CalendarUtils.now(), ""));
     }
 
     public void mainButtonHold(){
@@ -111,8 +107,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     public void customDialogConfirm(Date time, String name) {
-        TimeStamp timeStamp = new TimeStamp(time, name);
-        timeStamp.setId(model.createItem(timeStamp));
+        model.createItem(time, name);
         //todo добавлять не все записи, а только ту, что создали
         getViewState().showData(model.readAllItems());
     }
