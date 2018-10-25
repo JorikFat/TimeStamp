@@ -13,7 +13,9 @@ import java.util.Date;
 import java.util.List;
 
 import dev.jorik.timestamp.App;
+import dev.jorik.timestamp.DbIteractor;
 import dev.jorik.timestamp.MainView;
+import dev.jorik.timestamp.Model;
 import dev.jorik.timestamp.R;
 import dev.jorik.timestamp.Utils.DateTimeUtils;
 import dev.jorik.timestamp.model.entities.TimeStamp;
@@ -21,10 +23,11 @@ import dev.jorik.timestamp.model.entities.TimeStamp;
 @InjectViewState
 public class MainPresenter extends MvpPresenter<MainView> {
     private TimeStamp dialogTimestamp;
+    private Model model = new DbIteractor();
 
     public void mainButtonClick(){
         TimeStamp nowTimeStamp = new TimeStamp(Calendar.getInstance().getTime());
-        nowTimeStamp.setId(App.getDbHandler().createItem(nowTimeStamp));
+        nowTimeStamp.setId(model.createItem(nowTimeStamp));
         //todo заменить на insert
         getViewState().addTimeStamp(nowTimeStamp);
     }
@@ -40,9 +43,9 @@ public class MainPresenter extends MvpPresenter<MainView> {
 
     public void editDialogConfirm(String newName) {
         dialogTimestamp.setName(newName);
-        App.getDbHandler().refreshItem(dialogTimestamp);
+        model.refreshItem(dialogTimestamp);
         //todo обновить только 1 элемент, а не все
-        getViewState().showData(App.getDbHandler().readAllItems());
+        getViewState().showData(model.readAllItems());
         dialogTimestamp = null;
     }
 
@@ -52,7 +55,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     public void viewCreated(){
-        getViewState().showData(App.getDbHandler().readAllItems());
+        getViewState().showData(model.readAllItems());
     }
 
     public boolean selectOptionsMenu(int id) {
@@ -61,7 +64,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
                 getViewState().exportData(getExpTitle(), getExpData());
                 return true;
             case R.id.item_mainMenu_deleteAll:
-                getViewState().confirmDelete(App.getDbHandler().getRowsCount());
+                getViewState().confirmDelete(model.getRowsCount());
                 return true;
             default:
                 return false;
@@ -69,9 +72,9 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     public void confirmDialogConfirm(int inputRows){
-        int currentRows = App.getDbHandler().getRowsCount();
+        int currentRows = model.getRowsCount();
         if (inputRows == currentRows){
-            App.getDbHandler().deleteAllItems();
+            model.deleteAllItems();
             //todo сделать метод showEmptyList()
             getViewState().showData(new ArrayList<TimeStamp>());
         } else {
@@ -84,7 +87,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     private String getExpData(){
-        List<TimeStamp> listTimeStamp = App.getDbHandler().readAllItems();
+        List<TimeStamp> listTimeStamp = model.readAllItems();
         StringBuilder builder = new StringBuilder();
         for (TimeStamp ts : listTimeStamp) {
             builder.append(DateTimeUtils.TIME.format(ts.getTime()))
@@ -109,8 +112,8 @@ public class MainPresenter extends MvpPresenter<MainView> {
 
     public void customDialogConfirm(Date time, String name) {
         TimeStamp timeStamp = new TimeStamp(time, name);
-        timeStamp.setId(App.getDbHandler().createItem(timeStamp));
+        timeStamp.setId(model.createItem(timeStamp));
         //todo добавлять не все записи, а только ту, что создали
-        getViewState().showData(App.getDbHandler().readAllItems());
+        getViewState().showData(model.readAllItems());
     }
 }
