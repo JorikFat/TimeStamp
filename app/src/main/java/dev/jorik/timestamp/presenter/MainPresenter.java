@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import dev.jorik.timestamp.App;
 import dev.jorik.timestamp.MainView;
 import dev.jorik.timestamp.R;
 import dev.jorik.timestamp.Utils.DateTime;
@@ -19,18 +20,11 @@ import dev.jorik.timestamp.model.handlers.DbHandler;
 
 @InjectViewState
 public class MainPresenter extends MvpPresenter<MainView> {
-    DbHandler dbHandler;
     TimeStamp dialogTimestamp;
-
-//    public MainPresenter(){}
-
-    public MainPresenter(DbHandler dbHandler) {
-        this.dbHandler = dbHandler;
-    }
 
     public void mainButtonClick(){
         TimeStamp nowTimeStamp = new TimeStamp(Calendar.getInstance().getTime());
-        nowTimeStamp.setId(dbHandler.createItem(nowTimeStamp));
+        nowTimeStamp.setId(App.getDbHandler().createItem(nowTimeStamp));
         getViewState().addTimeStamp(nowTimeStamp);
     }
 
@@ -44,7 +38,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     public void viewCreated(){
-        getViewState().showData(dbHandler.readAllItems());
+        getViewState().showData(App.getDbHandler().readAllItems());
     }
 
     public boolean selectOptionsMenu(MenuItem item) {
@@ -53,7 +47,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
                 getViewState().exportData(getExpTitle(), getExpData());
                 return true;
             case R.id.item_mainMenu_deleteAll:
-                getViewState().confirmDelete(dbHandler.getRowsCount());
+                getViewState().confirmDelete(App.getDbHandler().getRowsCount());
                 return true;
             default:
                 return false;
@@ -62,8 +56,8 @@ public class MainPresenter extends MvpPresenter<MainView> {
 
     public void editDialogSuccess(String newName) {
         dialogTimestamp.setName(newName);
-        dbHandler.refreshItem(dialogTimestamp);
-        getViewState().showData(dbHandler.readAllItems());
+        App.getDbHandler().refreshItem(dialogTimestamp);
+        getViewState().showData(App.getDbHandler().readAllItems());
         dialogTimestamp = null;
     }
 
@@ -73,10 +67,10 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     public void confirmDialogConfirm(int inputRows){
-        int currentRows = dbHandler.getRowsCount();
+        int currentRows = App.getDbHandler().getRowsCount();
         if (inputRows == currentRows){
-            dbHandler.deleteAllItems();
-            getViewState().showData(dbHandler.readAllItems());
+            App.getDbHandler().deleteAllItems();
+            getViewState().showData(App.getDbHandler().readAllItems());
         } else {
             getViewState().showToast(R.string.str_confirmD_notEqual);
         }
@@ -87,7 +81,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
     }
 
     private String getExpData(){
-        List<TimeStamp> listTimeStamp = dbHandler.readAllItems();
+        List<TimeStamp> listTimeStamp = App.getDbHandler().readAllItems();
         StringBuilder builder = new StringBuilder();
         for (TimeStamp ts : listTimeStamp) {
             builder.append(DateTime.TIME.format(ts.getTime())).append(" - ").append(ts.getName()).append("\n");
@@ -101,8 +95,8 @@ public class MainPresenter extends MvpPresenter<MainView> {
 
     public void customDialogConfirm(Date time, String name) {
         TimeStamp timeStamp = new TimeStamp(time, name);
-        timeStamp.setId(dbHandler.createItem(timeStamp));
-        getViewState().showData(dbHandler.readAllItems());
+        timeStamp.setId(App.getDbHandler().createItem(timeStamp));
+        getViewState().showData(App.getDbHandler().readAllItems());
     }
 
     public void customDialogCancel() {

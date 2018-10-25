@@ -34,20 +34,26 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     private Button timeStamp;
     private RecyclerView listTimestamp;
     private TimeStampAdapterRV adapterRV;
-    private DbHandler dbHandler = new DbHandler(this);
-
     @InjectPresenter MainPresenter presenter;
-
-    @ProvidePresenter
-    MainPresenter createMainPresenter(){
-        return new MainPresenter(dbHandler);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        App.createDbHandler(this);
+
+        adapterRV = new TimeStampAdapterRV();
+        adapterRV.setOnItemClickListener(new TimeStampAdapterRV.ClickListener() {
+            @Override
+            public void onClick(int position) {
+                presenter.clickItemList(adapterRV.tempGetElements().get(position));
+            }
+        });
+        initViews();
+    }
+
+    private void initViews(){
         timeStamp = findViewById(R.id.btn_mainA_timestamp);
         timeStamp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,20 +68,12 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                 return true;
             }
         });
-
-        adapterRV = new TimeStampAdapterRV();
         listTimestamp = findViewById(R.id.rv_mainA_listTimestamp);
         listTimestamp.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         listTimestamp.setLayoutManager(layoutManager);
         listTimestamp.setAdapter(adapterRV);
-        adapterRV.setOnItemClickListener(new TimeStampAdapterRV.ClickListener() {
-            @Override
-            public void onClick(int position) {
-                presenter.clickItemList(adapterRV.tempGetElements().get(position));
-            }
-        });
     }
 
     @Override
