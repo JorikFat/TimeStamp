@@ -18,7 +18,6 @@ import dev.jorik.timestamp.model.entities.TimeStamp;
 
 public class TimeStampAdapterRV extends RecyclerView.Adapter<TimeStampAdapterRV.TimestampVH> {
 
-    private Context context;
     private List<TimeStamp> timestampData = new ArrayList<>();
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
     private ClickListener cl;
@@ -27,15 +26,11 @@ public class TimeStampAdapterRV extends RecyclerView.Adapter<TimeStampAdapterRV.
         void onClick(int id);
     }
 
-
-    public TimeStampAdapterRV(Context context) {
-        this.context = context;
-    }
-
     @NonNull
     @Override
     public TimestampVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.view_recyclerview_timestamp, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.view_recyclerview_timestamp, parent, false);
         return new TimestampVH(view);
     }
 

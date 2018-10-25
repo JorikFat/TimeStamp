@@ -63,7 +63,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
             }
         });
 
-        adapterRV = new TimeStampAdapterRV(this);
+        adapterRV = new TimeStampAdapterRV();
         listTimestamp = findViewById(R.id.rv_mainA_listTimestamp);
         listTimestamp.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
