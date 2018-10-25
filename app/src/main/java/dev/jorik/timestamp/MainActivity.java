@@ -18,16 +18,17 @@ import android.widget.Toast;
 
 import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.arellomobile.mvp.presenter.InjectPresenter;
-import com.arellomobile.mvp.presenter.ProvidePresenter;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import dev.jorik.timestamp.Utils.DateTime;
+import dev.jorik.timestamp.Utils.CalendarUtils;
+import dev.jorik.timestamp.Utils.DateTimeUtils;
 import dev.jorik.timestamp.model.entities.TimeStamp;
-import dev.jorik.timestamp.model.handlers.DbHandler;
 import dev.jorik.timestamp.presenter.MainPresenter;
+
+import static java.util.Calendar.HOUR_OF_DAY;
 
 public class MainActivity extends MvpAppCompatActivity implements MainView {
 
@@ -113,7 +114,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     public void showEditDialog(final TimeStamp timeStamp){
         View dialogView = getLayoutInflater().inflate(R.layout.view_editdialog, null, false);
         final EditText etDescription = dialogView.findViewById(R.id.et_dialogEdit_decs);
-        ((TextView) dialogView.findViewById(R.id.tv_dialogEdit_time)).setText(DateTime.TIME.format(timeStamp.getTime()));
+        ((TextView) dialogView.findViewById(R.id.tv_dialogEdit_time)).setText(DateTimeUtils.TIME.format(timeStamp.getTime()));
         etDescription.setText(timeStamp.getName());
 
         new AlertDialog.Builder(this)
@@ -127,14 +128,14 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 //                        dbHandler.refreshItem(timeStamp);
 //                        adapterRV.notifyDataSetChanged();
 
-                        presenter.editDialogSuccess(etDescription.getText().toString());
+                        presenter.editDialogConfirm(etDescription.getText().toString());
                     }
                 })
                 .setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialog) {
-                        showToast(android.R.string.cancel);
-                        presenter.editDialogFail();
+//                        showToast(android.R.string.cancel);
+                        presenter.editDialogCancel();
                     }
                 })
                 .show();
@@ -200,15 +201,21 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 //        npHours.setMinValue(0);
 //        npHours.setMaxValue(23);
         //todo вынести в CalendarUtils
-        npHours.setMinValue(tCalendar.getActualMinimum(Calendar.HOUR_OF_DAY));
-        npHours.setMaxValue(tCalendar.getActualMaximum(Calendar.HOUR_OF_DAY));
-        npHours.setValue(getDateValue(date, Calendar.HOUR_OF_DAY));
+//        npHours.setMinValue(tCalendar.getActualMinimum(Calendar.HOUR_OF_DAY));
+        npHours.setMinValue(CalendarUtils.getValue(HOUR_OF_DAY, CalendarUtils.Border.MIN));
+//        npHours.setMaxValue(tCalendar.getActualMaximum(Calendar.HOUR_OF_DAY));
+        npHours.setMaxValue(CalendarUtils.getValue(HOUR_OF_DAY, CalendarUtils.Border.MAX));
+//        npHours.setValue(getDateValue(date, Calendar.HOUR_OF_DAY));
+        npHours.setValue(CalendarUtils.getValue(HOUR_OF_DAY, null));
 //        npMinutes.setMinValue(0);
 //        npMinutes.setMaxValue(59);
         //todo вынести в CalendarUtils
-        npMinutes.setMinValue(tCalendar.getActualMinimum(Calendar.MINUTE));
-        npMinutes.setMaxValue(tCalendar.getActualMaximum(Calendar.MINUTE));
-        npMinutes.setValue(getDateValue(date, Calendar.MINUTE));
+//        npMinutes.setMinValue(tCalendar.getActualMinimum(Calendar.MINUTE));
+        npMinutes.setMinValue(CalendarUtils.getValue(Calendar.MINUTE, CalendarUtils.Border.MIN));
+//        npMinutes.setMaxValue(tCalendar.getActualMaximum(Calendar.MINUTE));
+        npMinutes.setMaxValue(CalendarUtils.getValue(Calendar.MINUTE, CalendarUtils.Border.MAX));
+//        npMinutes.setValue(getDateValue(date, Calendar.MINUTE));
+        npMinutes.setValue(CalendarUtils.getValue(HOUR_OF_DAY, null));
         npMinutes.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             //todo Вынести в Presenter????
             @Override
@@ -229,10 +236,11 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                     public void onClick(DialogInterface dialog, int which) {
                         int hours = npHours.getValue();
                         int minutes = npMinutes.getValue();
-                        Calendar calendar = Calendar.getInstance();
-                        calendar.set(Calendar.HOUR_OF_DAY, hours);
-                        calendar.set(Calendar.MINUTE, minutes);
-                        calendar.set(Calendar.SECOND, 0);
+//                        Calendar calendar = Calendar.getInstance();
+//                        calendar.set(HOUR_OF_DAY, hours);
+//                        calendar.set(MINUTE, minutes);
+//                        calendar.set(SECOND, 0);
+                        Calendar calendar = CalendarUtils.getCalendar(hours, minutes, 0);
 
 //                        TimeStamp customTimeStamp = new TimeStamp(calendar.getTime());
                         String description = etDescription.getText().toString();
@@ -255,12 +263,5 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                 })
                 .show();
 
-    }
-
-    //todo вынести в CalendarUtils
-    private int getDateValue(Date date, int valueConst){
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        return calendar.get(valueConst);
     }
 }

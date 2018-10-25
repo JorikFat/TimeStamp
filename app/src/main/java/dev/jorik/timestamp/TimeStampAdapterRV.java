@@ -13,13 +13,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import dev.jorik.timestamp.Utils.DateTimeUtils;
 import dev.jorik.timestamp.model.entities.TimeStamp;
 
 
 public class TimeStampAdapterRV extends RecyclerView.Adapter<TimeStampAdapterRV.TimestampVH> {
 
-    private List<TimeStamp> timestampData = new ArrayList<>();
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
+    private final List<TimeStamp> timestampData = new ArrayList<>();
     private ClickListener cl;
 
     public interface ClickListener{
@@ -37,9 +37,9 @@ public class TimeStampAdapterRV extends RecyclerView.Adapter<TimeStampAdapterRV.
     @Override
     public void onBindViewHolder(@NonNull TimestampVH holder, int position) {
         TimeStamp timeStamp = timestampData.get(position);
-        String tsDesc = (timeStamp.getName() == null) ? "" : timeStamp.getName();
-        holder.textTime.setText(DATE_FORMAT.format(timeStamp.getTime()));
-        holder.textDescription.setText(tsDesc);
+//        String tsDesc = (timeStamp.getName() == null) ? "" : timeStamp.getName();
+        holder.textTime.setText(DateTimeUtils.TIME.format(timeStamp.getTime()));
+        holder.textDescription.setText(timeStamp.getName());
         holder.position = position;
     }
 
@@ -54,6 +54,14 @@ public class TimeStampAdapterRV extends RecyclerView.Adapter<TimeStampAdapterRV.
         notifyDataSetChanged();
     }
 
+    //todo починить этот метод
+    /*
+    * не добавлять метку сразу в конец.
+    * поотому что может быть последней стоять кастомная метка,
+    * в этом случа нужно будет текущую меткку перед ней.
+    * ВАРИАНТ:
+    * после добавления новой метки обновлять весь список
+    * */
     public void add(TimeStamp timestamp){
         timestampData.add(timestamp);
         notifyDataSetChanged();

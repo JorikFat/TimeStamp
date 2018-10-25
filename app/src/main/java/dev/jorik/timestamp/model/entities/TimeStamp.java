@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+//todo убрать интерфейс Comparable в Interactor.Comparator
 public class TimeStamp implements Comparable<TimeStamp> {
 
     private long id;

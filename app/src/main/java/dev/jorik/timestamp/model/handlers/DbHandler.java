@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import dev.jorik.timestamp.Utils.DateTimeUtils;
 import dev.jorik.timestamp.model.entities.TimeStamp;
 
 import static dev.jorik.timestamp.model.handlers.DbHandler.Const.DB_NAME;
@@ -25,7 +26,6 @@ import static dev.jorik.timestamp.model.handlers.DbHandler.Const.TIME;
 public class DbHandler extends SQLiteOpenHelper {
 
     public static class Const {
-        private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
         public static final String DB_NAME = "time_stamps";
         public static final int DB_VERSION = 2;
         public static final String ARG = "=?";
@@ -151,6 +151,8 @@ public class DbHandler extends SQLiteOpenHelper {
     }
 
     //time <- String
+    //todo рефакторить под mvp
+    /*model не должен генерировать timeStamp*/
     private TimeStamp getTimestampFromCursor_v1(Cursor cursor) {
         TimeStamp rTimestamp = new TimeStamp();
         rTimestamp.setId(cursor.getInt(cursor.getColumnIndex(ID)));
@@ -160,6 +162,8 @@ public class DbHandler extends SQLiteOpenHelper {
     }
 
     //time <- long
+    //todo рефакторить под mvp
+    /*model не должен генерировать timeStamp*/
     private TimeStamp getTimestampFromCursor(Cursor cursor) {
         TimeStamp rTimestamp = new TimeStamp();
         rTimestamp.setId(cursor.getInt(cursor.getColumnIndex(ID)));
@@ -168,6 +172,8 @@ public class DbHandler extends SQLiteOpenHelper {
         return rTimestamp;
     }
 
+    //todo рефакторить под mvp
+    /*model не должен генерировать timeStamp*/
     private ContentValues getValuesFromTimestamp(TimeStamp timeStamp) {
         ContentValues rValues = new ContentValues();
         rValues.put(NAME, timeStamp.getName());
@@ -175,20 +181,24 @@ public class DbHandler extends SQLiteOpenHelper {
         return rValues;
     }
 
+    //метод для совместимости с первой версией базы
     private String getStringFromDate(Date date) {
-        return Const.DATE_FORMAT.format(date);
+        return DateTimeUtils.TIME.format(date);
     }
 
+    //метод для совместимости с первой версией базы
     private Date getDateFromString(String stringDate) {
         Date rDate = new Date();
         try {
-            rDate = Const.DATE_FORMAT.parse(stringDate);
+            rDate = DateTimeUtils.TIME.parse(stringDate);
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return rDate;
     }
 
+    //todo рефакторить под mvp
+    /*model не должен генерировать timeStamp*/
     private List<TimeStamp> getAllItemsFromDB(SQLiteDatabase database) {
         List<TimeStamp> rList = new ArrayList<>();
         String selectQuery = "SELECT * FROM " + TABLE_NAME;
