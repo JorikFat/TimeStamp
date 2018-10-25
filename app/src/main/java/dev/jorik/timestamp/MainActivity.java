@@ -111,6 +111,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     }
 
     @Override
+    //todo вынести в отдельный Presenter
     public void showEditDialog(final TimeStamp timeStamp){
         View dialogView = getLayoutInflater().inflate(R.layout.view_editdialog, null, false);
         final EditText etDescription = dialogView.findViewById(R.id.et_dialogEdit_decs);
@@ -163,6 +164,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     }
 
     @Override
+    //todo вынести в отдельный Presenter
     public void confirmDelete(final int countRows){
         final View dialogView = getLayoutInflater().inflate(R.layout.view_dialogconfirm, null, false);
         ((TextView) dialogView.findViewById(R.id.tv_confirmD_countRows)).setText(String.valueOf(countRows));
@@ -173,45 +175,44 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-//                        EditText inputCount = dialogView.findViewById(R.id.et_confirmD_inputRows);
-//                        if (Integer.parseInt(inputCount.getText().toString()) == countRows) {
-//                            deleteData();
-//                        }
-//                        else {
-//                            showToast(getString(R.string.str_confirmD_notEqual));
-//                        }
-//
-                        int inputRows = Integer.parseInt(
-                                ((EditText) dialogView.findViewById(R.id.et_confirmD_inputRows))
-                                        .getText().toString()
-                        );
-                        presenter.confirmDialogSuccess(inputRows);
+                        String text = ((EditText) dialogView.findViewById(R.id.et_confirmD_inputRows))
+                                .getText().toString();
+                        int inputRows = Integer.parseInt(text);
+                        presenter.confirmDialogConfirm(inputRows);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        presenter.confirmDialogFail();
+                        presenter.confirmDialogCancel();
                         dialog.cancel();
                     }
                 })
                 .show();
     }
 
-    //рефактор
+    //todo вынести в отдельный Presenter
     @Override
     public void createCustomTimestamp(Date date){
+        Calendar tCalendar = Calendar.getInstance();
         View view = getLayoutInflater().inflate(R.layout.view_customdialog, null, false);
         final NumberPicker npHours = view.findViewById(R.id.numPic_customD_hours);
         final NumberPicker npMinutes = view.findViewById(R.id.numPic_customD_minutes);
         final EditText etDescription = view.findViewById(R.id.et_dialogCustom_decs);
-        npHours.setMinValue(0);
-        npHours.setMaxValue(23);
+//        npHours.setMinValue(0);
+//        npHours.setMaxValue(23);
+        //todo вынести в CalendarUtils
+        npHours.setMinValue(tCalendar.getActualMinimum(Calendar.HOUR_OF_DAY));
+        npHours.setMaxValue(tCalendar.getActualMaximum(Calendar.HOUR_OF_DAY));
         npHours.setValue(getDateValue(date, Calendar.HOUR_OF_DAY));
-        npMinutes.setMinValue(0);
-        npMinutes.setMaxValue(59);
+//        npMinutes.setMinValue(0);
+//        npMinutes.setMaxValue(59);
+        //todo вынести в CalendarUtils
+        npMinutes.setMinValue(tCalendar.getActualMinimum(Calendar.MINUTE));
+        npMinutes.setMaxValue(tCalendar.getActualMaximum(Calendar.MINUTE));
         npMinutes.setValue(getDateValue(date, Calendar.MINUTE));
         npMinutes.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            //todo Вынести в Presenter????
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
                 if (oldVal == 59 && newVal == 0) {
@@ -234,18 +235,23 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                         calendar.set(Calendar.HOUR_OF_DAY, hours);
                         calendar.set(Calendar.MINUTE, minutes);
                         calendar.set(Calendar.SECOND, 0);
-                        TimeStamp customTimeStamp = new TimeStamp(calendar.getTime());
+
+//                        TimeStamp customTimeStamp = new TimeStamp(calendar.getTime());
                         String description = etDescription.getText().toString();
-                        if (description.length() > 0){
-                            customTimeStamp.setName(description);
-                        }
-                        timeStamp.setId((int) dbHandler.createItem(customTimeStamp));
-                        adapterRV.insertItem(customTimeStamp);
+
+                        presenter.customDialogConfirm(calendar.getTime(), description);
+
+//                        if (description.length() > 0){
+//                            customTimeStamp.setName(description);
+//                        }
+//                        timeStamp.setId((int) dbHandler.createItem(customTimeStamp));
+//                        adapterRV.insertItem(customTimeStamp);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        presenter.customDialogCancel();
                         dialog.cancel();
                     }
                 })
@@ -253,6 +259,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     }
 
+    //todo вынести в CalendarUtils
     private int getDateValue(Date date, int valueConst){
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);

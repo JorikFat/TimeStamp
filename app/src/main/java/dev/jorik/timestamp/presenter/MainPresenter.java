@@ -8,6 +8,7 @@ import com.arellomobile.mvp.MvpPresenter;
 import com.arellomobile.mvp.presenter.ProvidePresenter;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import dev.jorik.timestamp.MainView;
@@ -71,7 +72,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
         getViewState().showToast(android.R.string.cancel);
     }
 
-    public void confirmDialogSuccess(int inputRows){
+    public void confirmDialogConfirm(int inputRows){
         int currentRows = dbHandler.getRowsCount();
         if (inputRows == currentRows){
             dbHandler.deleteAllItems();
@@ -81,7 +82,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
         }
     }
 
-    public void confirmDialogFail(){
+    public void confirmDialogCancel(){
         //nothing
     }
 
@@ -96,5 +97,15 @@ public class MainPresenter extends MvpPresenter<MainView> {
 
     private String getExpTitle(){
         return DateTime.DATE.format(Calendar.getInstance().getTime());
+    }
+
+    public void customDialogConfirm(Date time, String name) {
+        TimeStamp timeStamp = new TimeStamp(time, name);
+        timeStamp.setId(dbHandler.createItem(timeStamp));
+        getViewState().showData(dbHandler.readAllItems());
+    }
+
+    public void customDialogCancel() {
+        //nothing
     }
 }
